@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cas-service.fullname" . }}
+  labels:
+    {{- include "cas-service.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "cas-service.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "cas-service.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- include "cas-service.volumes" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "cas-service.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}/{{ required "A image.name is required!" .Values.image.name }}:{{ required "A image.tag is required!" .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "cas-service.fullname" . }}
+                {{- include "cas-service.secret" . }}
+            - secretRef:
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.healthChecks.liveness.url }}
+              port: http
+            initialDelaySeconds: {{ .Values.healthChecks.liveness.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.healthChecks.liveness.timeoutSeconds }}
+            periodSeconds: {{ .Values.healthChecks.liveness.periodSeconds}}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.healthChecks.ready.url }}
+              port: http
+            initialDelaySeconds: {{ .Values.healthChecks.ready.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.healthChecks.ready.timeoutSeconds }}
+            periodSeconds: {{ .Values.healthChecks.ready.periodSeconds}}
+          {{- include "cas-service.volumeMounts" . }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
