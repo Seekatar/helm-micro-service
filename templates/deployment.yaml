@@ -34,6 +34,7 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}/{{ required "A image.name is required!" .Values.image.name }}:{{ required "A image.tag is required!" .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- include "cas-service.volumeMounts" . }}
           ports:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
