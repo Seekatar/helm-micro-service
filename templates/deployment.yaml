@@ -25,7 +25,9 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{/*
       serviceAccountName: {{ include "cas-service.serviceAccountName" . }}
+      */}}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -46,14 +48,14 @@ spec:
           livenessProbe:
             httpGet:
               path: {{ .Values.healthChecks.liveness.url }}
-              port: http
+              port: {{ .Values.healthChecks.port }}
             initialDelaySeconds: {{ .Values.healthChecks.liveness.initialDelaySeconds }}
             timeoutSeconds: {{ .Values.healthChecks.liveness.timeoutSeconds }}
             periodSeconds: {{ .Values.healthChecks.liveness.periodSeconds}}
           readinessProbe:
             httpGet:
               path: {{ .Values.healthChecks.ready.url }}
-              port: http
+              port: {{ .Values.healthChecks.port }}
             initialDelaySeconds: {{ .Values.healthChecks.ready.initialDelaySeconds }}
             timeoutSeconds: {{ .Values.healthChecks.ready.timeoutSeconds }}
             periodSeconds: {{ .Values.healthChecks.ready.periodSeconds}}

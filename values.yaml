@@ -17,7 +17,7 @@ fullnameOverride: ""
 
 serviceAccount:
   # Specifies whether a service account should be created
-  create: true
+  create: false
   # Annotations to add to the service account
   annotations: {}
   # The name of the service account to use.
@@ -67,6 +67,20 @@ resources:
   requests:
     cpu: 300m
     memory: 500Mi
+
+healthChecks:
+  port: 80
+  liveness:
+    url: /health/live
+    initialDelaySeconds: 10
+    timeoutSeconds: 15
+    periodSeconds: 15
+
+  ready:
+    url: /health/ready
+    initialDelaySeconds: 45
+    timeoutSeconds: 120
+    periodSeconds: 120
 
 autoscaling:
   enabled: false

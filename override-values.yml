@@ -1,0 +1,61 @@
+# Override of default values for Helm template
+
+# full name is generated with Release name if not overridden
+fullnameOverride: cas-widget
+nameOverride: cas-widget
+
+image:
+  name: ccc-cas-widget-api
+  tag: latest
+  # use empty and Never for local
+  repository: ""
+  pullPolicy: Never
+
+configMap:
+  - name: test
+    value: 123
+  - name: something
+    value: "else"
+
+secret: cas-widget
+secrets:
+  - name: test
+    value: 123
+  - name: something
+    value: "else"
+
+# volumes:
+#   - hostPath: /ais-stage01/Share03/Images/
+#   - vol: //172.31.2.125/Share01/Images/
+#     path: /ais-stage01/Share01/Images/
+#     secret: nas-reliance-cifs-secret
+#     dmode: "0444"
+#     fmode: "0444"
+#     ver: "1.0"
+#   - vol: //172.31.2.125/Share01/Noversion/
+#     path: /ais-stage01/Share01/Noversion/
+#     secret: nas-reliance-cifs-secret
+#     dmode: "0444"
+#     fmode: "0444"
+
+# healthChecks:
+#   liveness:
+#     url: /health/live
+#     initialDelaySeconds: 10
+#     timeoutSeconds: 15
+#     periodSeconds: 15
+
+#   ready:
+#     url: /health/ready
+#     initialDelaySeconds: 45
+#     timeoutSeconds: 120
+#     periodSeconds: 120
+
+# variables for service
+# service:
+  # type: ClusterIP
+  # port: 80
+  # targetPort: 8081
+  # nodePort: 32000
+
+
