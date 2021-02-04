@@ -74,9 +74,9 @@ Option for NodePort
 Add secretRef
 */}}
 {{- define "cas-service.secret" -}}
-  {{- if .Values.secret }}
+  {{- if .Values.secrets }}
             - secretRef:
-                name: {{ .Values.secret }}
+                name: {{ include "cas-service.fullname" . }}
   {{- end -}}
 {{- end -}}
 
