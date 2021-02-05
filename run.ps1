@@ -1,6 +1,6 @@
 
 param(
-    [ValidateSet('install','uninstall','dry-run')]
+    [ValidateSet('install','uninstall','dry-run','lint')]
     [string[]] $Task,
     [string] $name = 'cas-widget-api',
     [string] $overrideFile = '..\config-values-api.yml'
@@ -29,6 +29,9 @@ foreach ($t in $Task) {
         }
         'dry-run' {
             exec $t { helm install . --dry-run  --generate-name --values $overrideFile | ..\Split-Debug.ps1 -Outputpath \temp\helm } -WorkingDirectory $PSScriptRoot
+        }
+        'lint' {
+            exec $t { helm lint . } -WorkingDirectory $PSScriptRoot
         }
         Default {}
     }

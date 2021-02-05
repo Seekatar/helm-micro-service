@@ -1,6 +1,6 @@
 # Default values for cas-service.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
+# override with command line --set key:value or
+# --values <filename>
 
 replicaCount: 1
 
@@ -42,6 +42,7 @@ service:
   port: 80
   targetPort: 8080
   portName: HealthCheck
+
 
 ingress:
   enabled: false
