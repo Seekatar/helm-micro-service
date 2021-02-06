@@ -2,28 +2,38 @@
 # override with command line --set key:value or
 # --values <filename>
 
+# serviceName is the require name of the service, e.g. cas-widget-service
+serviceName: ""
+
+# deployFlow controls if the Flow object should be deployed (must be false for dry run)
+deployFlow: true
+
+# number of replicas for the deployment
 replicaCount: 1
 
 image:
+  # image.repository is the repo for pulling the image
   repository: rulesenginecontainerregistry.azurecr.io
+  # image.pullPolicy for K8s
   pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
+  # image.name is the required image name to deploy
   name: ""
+  # image.tag is the required image tag to deploy
   tag: ""
 
+# imagePullSecrets for the deployment
 imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
 
 serviceAccount:
-  # Specifies whether a service account should be created
+  # serviceAccount.create specifies whether a service account should be created
   create: false
-  # Annotations to add to the service account
+  # serviceAccount.annotations to add to the service account
   annotations: {}
-  # The name of the service account to use.
+  # serviceAccount.name is the name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: ""
 
+# podAnnotations to add to the pod
 podAnnotations: {}
 
 podSecurityContext: {}
@@ -38,11 +48,14 @@ securityContext: {}
   # runAsUser: 1000
 
 service:
+  # service.type
   type: ClusterIP
+  # service.port is port to expose via the Service
   port: 80
+  # service.targetPort is port inside the container
   targetPort: 8080
+  # service.portName is descriptive name of the port
   portName: HealthCheck
-
 
 ingress:
   enabled: false
