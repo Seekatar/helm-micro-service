@@ -1,9 +1,35 @@
+<#
+.SYNOPSIS
+Run commands for the Helm Chart for a Casualty service
 
+.PARAMETER Task
+One or more Tasks to run, tab complete
+
+.PARAMETER Name
+Name of the service, e.g cas
+
+.PARAMETER OverrideFile
+Help values override file
+
+.EXAMPLE
+.\run.ps1 install -Name cas-widget-api -OverrideFile '..\config-values-api.yml'
+
+Create a widget api service using values in config-values-api.yml
+
+.EXAMPLE
+.\run.ps1 dry-run -OverrideFile '..\config-values-api.yml' -Name cas-widget-api | Split-HelmDryRun -Outputpath \temp\helm
+
+Do a dry run and split the manifests up for comparing to ./templates
+
+Get Split-HelmDryRun from https://gist.githubusercontent.com/Seekatar/5c14ad85d9d649ca0da9bf8377367ac4/raw/a0c8b4796acd8b1df03fd9ecee6aa282025acf64/Split-HelmDryRun.ps1
+#>
 param(
+    [Parameter(Mandatory)]
     [ValidateSet('install','uninstall','dry-run','lint')]
     [string[]] $Task,
-    [string] $name = 'cas-widget-api',
-    [string] $overrideFile = '..\config-values-api.yml'
+    [string] $Name,
+    [ValidateScript({Test-Path $_ -PathType Leaf})]
+    [string] $OverrideFile
 )
 
 function exec([Parameter(Mandatory)] [string] $taskName,
@@ -22,13 +48,22 @@ function exec([Parameter(Mandatory)] [string] $taskName,
 foreach ($t in $Task) {
     switch ($t) {
         'install' {
-            exec $t { helm upgrade --install --values $overrideFile $name . } -workingdir $PSScriptRoot
+            if (!$OverrideFile -or !$Name) {
+                Write-Warning "OverrideFile and Name are required for $t"
+            }
+            exec $t { helm upgrade --install --values $OverrideFile $Name . } -workingdir $PSScriptRoot
         }
         'uninstall' {
-            exec $t { helm uninstall $name }
+            if (!$Name) {
+                Write-Warning "Name is required for $t"
+            }
+            exec $t { helm uninstall $Name }
         }
         'dry-run' {
-            exec $t { helm install . --dry-run  --generate-name --values $overrideFile | ..\Split-Debug.ps1 -Outputpath \temp\helm } -WorkingDirectory $PSScriptRoot
+            if (!$OverrideFile -or !$Name) {
+                Write-Warning "OverrideFile and Name are required for $t"
+            }
+            exec $t { helm upgrade --install --dry-run --values $OverrideFile $Name --set deployFlow=false . } -WorkingDirectory $PSScriptRoot
         }
         'lint' {
             exec $t { helm lint . } -WorkingDirectory $PSScriptRoot
