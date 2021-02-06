@@ -76,7 +76,7 @@ Add secretRef
 {{- define "cas-service.secret" -}}
   {{- if .Values.secrets }}
             - secretRef:
-                name: {{ include "cas-service.fullname" . }}
+                name: {{ include "cas-service.fullname" . }}-secret
   {{- end -}}
 {{- end -}}
 
