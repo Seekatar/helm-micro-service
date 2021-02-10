@@ -11,5 +11,5 @@ spec:
     - name: wget
       image: busybox
       command: ['wget']
-      args: ['{{ include "cas-service.fullname" . }}:{{ .Values.service.port }}']
+      args: ['{{ include "cas-service.fullname" . }}:{{ .Values.service.port }}/swagger/index.html']
   restartPolicy: Never
