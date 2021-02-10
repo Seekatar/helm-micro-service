@@ -25,11 +25,13 @@ Get Split-HelmDryRun from https://gist.githubusercontent.com/Seekatar/5c14ad85d9
 #>
 param(
     [Parameter(Mandatory)]
-    [ValidateSet('install','uninstall','dry-run','lint')]
+    [ValidateSet('install','uninstall','dry-run','lint','package')]
     [string[]] $Task,
     [string] $Name,
     [ValidateScript({Test-Path $_ -PathType Leaf})]
-    [string] $OverrideFile
+    [string] $OverrideFile,
+    [ValidatePattern('\d+\.\d+.\d+')]
+    [string] $Version
 )
 
 function exec([Parameter(Mandatory)] [string] $taskName,
@@ -50,23 +52,33 @@ foreach ($t in $Task) {
         'install' {
             if (!$OverrideFile -or !$Name) {
                 Write-Warning "OverrideFile and Name are required for $t"
+            } else {
+                exec $t { helm upgrade --install --values $OverrideFile $Name . } -workingdir $PSScriptRoot
             }
-            exec $t { helm upgrade --install --values $OverrideFile $Name . } -workingdir $PSScriptRoot
         }
         'uninstall' {
             if (!$Name) {
                 Write-Warning "Name is required for $t"
+            } else {
+                exec $t { helm uninstall $Name }
             }
-            exec $t { helm uninstall $Name }
         }
         'dry-run' {
             if (!$OverrideFile -or !$Name) {
                 Write-Warning "OverrideFile and Name are required for $t"
+            } else {
+                exec $t { helm upgrade --install --dry-run --values $OverrideFile $Name --set deployFlow=false . } -WorkingDirectory $PSScriptRoot
             }
-            exec $t { helm upgrade --install --dry-run --values $OverrideFile $Name --set deployFlow=false . } -WorkingDirectory $PSScriptRoot
         }
         'lint' {
             exec $t { helm lint . } -WorkingDirectory $PSScriptRoot
+        }
+        'package' {
+            if (!$Version) {
+                Write-Warning "Version is required for $t"
+            } else {
+                exec $t { helm package . --app-version $Version --version $Version } -WorkingDirectory $PSScriptRoot
+            }
         }
         Default {}
     }
