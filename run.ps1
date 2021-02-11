@@ -31,7 +31,8 @@ param(
     [ValidateScript({Test-Path $_ -PathType Leaf})]
     [string] $OverrideFile,
     [ValidatePattern('\d+\.\d+.\d+')]
-    [string] $Version
+    [string] $Version,
+    [switch] $Wait
 )
 
 function exec([Parameter(Mandatory)] [string] $taskName,
@@ -53,7 +54,11 @@ foreach ($t in $Task) {
             if (!$OverrideFile -or !$Name) {
                 Write-Warning "OverrideFile and Name are required for $t"
             } else {
-                exec $t { helm upgrade --install --values $OverrideFile $Name . } -workingdir $PSScriptRoot
+                $parms = @()
+                if ($Wait) {
+                    $parms += "--wait" # default wait is 5m0s
+                }
+                exec $t { helm upgrade --install --values $OverrideFile $Name . @parms} -workingdir $PSScriptRoot
             }
         }
         'uninstall' {

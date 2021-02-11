@@ -31,7 +31,7 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ .Chart.Name }}
+        - name: {{ include "cas-service.fullname" . }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}{{ .Values.image.repository | not | ternary "" "/" }}{{ required "A image.name is required!" .Values.image.name }}:{{ required "A image.tag is required!" .Values.image.tag }}"
@@ -41,6 +41,7 @@ spec:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
               protocol: TCP
+          {{- include "cas-service.volumeMounts" . }}
           envFrom:
             - configMapRef:
                 name: {{ include "cas-service.fullname" . }}
@@ -59,7 +60,6 @@ spec:
             initialDelaySeconds: {{ .Values.healthChecks.ready.initialDelaySeconds }}
             timeoutSeconds: {{ .Values.healthChecks.ready.timeoutSeconds }}
             periodSeconds: {{ .Values.healthChecks.ready.periodSeconds}}
-          {{- include "cas-service.volumeMounts" . }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

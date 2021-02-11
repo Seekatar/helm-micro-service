@@ -1,5 +1,6 @@
 <#
 .SYNOPSIS
+Replacement for New-K8sManifest.ps1
 
 .PARAMETER appName
 Name of the app, e.g. cas-bill, used for names of image, etc.
@@ -69,74 +70,103 @@ string of comma-delimited InitialDelaySeconds, timeoutSeconds and periodSeconds,
 
 .PARAMETER aws
 Set to append aws to variables file for kube connections
+
+.EXAMPLE
+$outFolder = "c:\temp\helm"
+$env:BUILD_BUILDID='0.1.7'
+.\Install-Helm.ps1  -OutputFolder $outFolder -CI -AppName cas-billingest-poller `
+                        -NodeSelector nonprod `
+                        -ServiceAccountName ocr-devjob-user `
+                        -TargetPort 8080
+
+Pretty typical manifest creation using defaults for most everything.
+
+.EXAMPLE
+$outFolder = "c:\temp\helm"
+$env:BUILD_BUILDID='0.1.7'
+.\Install-Helm.ps1  -OutputFolder $outFolder -CI -AppName cas-bill `
+                        -NodeSelector reliancedev `
+                        -Volumes @"
+                            [
+                                {
+                                "vol": "//172.31.2.170/Share03/Images/",
+                                "path": "/ais-stage01/Share03/Images/",
+                                "secret": "nas-reliance-cifs-secret",
+                                "dmode": "0444",
+                                "fmode": "0444",
+                                "ver": "1.0"
+                                }
+                            ]
+"@ `
+                        -TargetPort 8080
+
+
+Create a manifest with volumes
 #>
-param (
-[string] $appName,
-[string] $environment,
-[string] $triggeringPipeline,
-[string] $configMapProperties,
-[string] $imageName,
-[string] $dependsOn,
-[Parameter(Mandatory)]
-[string] $secretProperties = 'test = test',
-[object] $variableGroups,
-[string] $appPrefix,
-[string] $serviceAccountName,
-[Parameter(Mandatory)]
-[string] $volumesJson = '[]',
-[Parameter(Mandatory)]
-[number] $port = 80,
-[Parameter(Mandatory)]
-[number] $targetPort = 8080,
-[number] $containerPort,
-[number] $nodePort,
-[Parameter(Mandatory)]
-[number] $replicas = 1,
-[Parameter(Mandatory)]
-[string] $livenessUrl = '/health/live',
-[Parameter(Mandatory)]
-[string] $readyUrl = '/health/ready',
-[Parameter(Mandatory)]
-[string] $registry = 'rulesenginecontainerregistry.azurecr.io',
-[string] $secret,
-[ValidateCount(3,3)]
-[int[]] $LivenessLimits = @(10,15,15),
-[ValidateCount(3,3)]
-[int[]] $ReadyLimits = @(45,120,120)
+[CmdletBinding()]
+param(
+    [Parameter(Mandatory)]
+    [string] $AppName,
+    [string] $OutputFolder,
+    [string] $NodeSelector,
+    [string] $VolumesJson,
+    [switch] $CI,
+    [string] $ServiceAccountName,
+    [ValidateRange(1,64000)]
+    [int]$Port = 80,
+    [ValidateRange(1,64000)]
+    [int] $TargetPort = $Port,
+    [ValidateRange(1,64000)]
+    [int] $ContainerPort = $TargetPort,
+    [ValidateRange(0,64000)]
+    [int] $NodePort,
+    [ValidateRange(1,1000)]
+    [int] $Replicas = 1,
+    [string] $LivenessUrl = "/health/live",
+    [string] $ReadyUrl = "/health/ready",
+    [string] $Registry = "rulesenginecontainerregistry.azurecr.io",
+    [string] $ImageName = "ccc-$AppName-service:$env:BUILD_BUILDID",
+    [string] $Secret = "$AppName-secret",
+    [ValidateCount(3,3)]
+    [int[]] $LivenessLimits = @(10,15,15),
+    [ValidateCount(3,3)]
+    [int[]] $ReadyLimits = @(45,120,120),
+    [int] $SecurityContext,
+    [double] $CpuRequest = 0.3,
+    [string] $MemoryRequest = "500Mi",
+    [string] $configMapProperties,
+    [string] $secretProperties
 )
 
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
 $serviceType = if ($nodePort) { "NodePort" } else {"ClusterIP" }
-$configMap = ConvertFrom-StringData $configMapProperties
-$secret = ConvertFrom-StringData $secretProperties
 
 $configMapYaml = ""
-if ($configMap) {
-    $configMapYaml = "configMap:`n"
-    $configMap.Keys | ForEach-Object {
-        $configMapYaml += "  ${_}: `"$($_[$_])`"'"
-    }
+if ($configMapProperties) {
+  $configMap = ConvertFrom-StringData $configMapProperties
+  $configMapYaml = "configMap:`n"
+  $configMap.Keys | ForEach-Object {
+      $configMapYaml += "  ${_}: `"$($_[$_])`"'"
+  }
 }
+
 $secretYaml = ""
-if ($secret) {
-    $secretYaml = "secret:`n"
-    $secret.Keys | ForEach-Object {
-        $secretMapYaml += "  ${_}: `"$($_[$_])`"'"
-    }
+if ($secretProperties) {
+  $secret = ConvertFrom-StringData $secretProperties
+  $secretYaml = "secret:`n"
+  $secret.Keys | ForEach-Object {
+      $secretMapYaml += "  ${_}: `"$($_[$_])`"'"
+  }
 }
 
 $volumesYaml = ""
 if ($volumesJson) {
-# volumes:
-#   - hostPath: /ais-stage01/Share03/Images/
-#   - vol: //172.31.2.125/Share01/Images/
-#     path: /ais-stage01/Share01/Images/
-#     secret: nas-reliance-cifs-secret
-#     dmode: "0444"
-#     fmode: "0444"
-#     ver: "1.0"
-
+  $volumesYaml = "volumes:`n$volumesJson"
 }
-@"
+
+$values = @"
 # Override of default values for Helm template
 serviceName: $appName
 
@@ -151,16 +181,17 @@ $secretYaml
 $volumesYaml
 
 healthChecks:
+  port: $targetPort
   liveness:
     url: $livenessUrl
-    initialDelaySeconds: $($livenessLimit[0])
-    timeoutSeconds: $($livenessLimit[1])
-    periodSeconds: $($livenessLimit[2])
+    initialDelaySeconds: $($livenessLimits[0])
+    timeoutSeconds: $($livenessLimits[1])
+    periodSeconds: $($livenessLimits[2])
   ready:
     url: $readyUrl
-    initialDelaySeconds: $($readyLimit[0])
-    timeoutSeconds: $($readyLimit[1])
-    periodSeconds: $($readyLimit[2])
+    initialDelaySeconds: $($readyLimits[0])
+    timeoutSeconds: $($readyLimits[1])
+    periodSeconds: $($readyLimits[2])
 
 service:
   type: $serviceType
@@ -169,3 +200,9 @@ service:
   nodePort: $nodePort
 
 "@
+$valuesFile = New-TemporaryFile
+$values | Out-File $valuesFile -Encoding ascii
+
+Write-Verbose "Values written to $valuesFile"
+
+& (Join-Path $PSScriptRoot run.ps1) dry-run -OverrideFile $valuesFile -Name $appName | Split-HelmDryRun -Outputpath $OutputFolder
