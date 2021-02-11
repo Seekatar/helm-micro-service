@@ -18,5 +18,5 @@
   echo "Visit http://127.0.0.1:8080/swagger/index.html for the swagger"
   kubectl --namespace default port-forward deployment/{{ include "cas-service.fullname" . }} 8080:{{ .Values.service.targetPort }}
   or once the pod is Ready
-  kubectl --namespace default port-forward service/{{ include "cas-service.fullname" . }} 8080:{{ .Values.service.targetPort }}
+  kubectl --namespace default port-forward service/{{ include "cas-service.fullname" . }} 8080:{{ .Values.service.port }}
 {{- end }}
