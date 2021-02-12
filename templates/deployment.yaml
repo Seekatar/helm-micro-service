@@ -19,7 +19,11 @@ spec:
       {{- end }}
       labels:
         {{- include "cas-service.selectorLabels" . | nindent 8 }}
+      annotations:
+        guid: {{ uuidv4 }}
     spec:
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       {{- include "cas-service.volumes" . }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -28,8 +32,6 @@ spec:
       {{/*
       serviceAccountName: {{ include "cas-service.serviceAccountName" . }}
       */}}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ include "cas-service.fullname" . }}
           securityContext:

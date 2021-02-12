@@ -21,7 +21,9 @@ Create a widget api service using values in config-values-api.yml
 
 Do a dry run and split the manifests up for comparing to ./templates
 
-Get Split-HelmDryRun from https://gist.githubusercontent.com/Seekatar/5c14ad85d9d649ca0da9bf8377367ac4/raw/a0c8b4796acd8b1df03fd9ecee6aa282025acf64/Split-HelmDryRun.ps1
+Get with this:
+Invoke-WebRequest -OutFile .\Split-HelmDryRun.ps1 https://gist.githubusercontent.com/Seekatar/5c14ad85d9d649ca0da9bf8377367ac4/raw/a0c8b4796acd8b1df03fd9ecee6aa282025acf64/Split-HelmDryRun.ps1
+. .\Split-HelmDryRun.ps1
 #>
 param(
     [Parameter(Mandatory)]
