@@ -88,7 +88,7 @@ Add volumes
           driver: "fstab/cifs"
           fsType: "cifs"
           secretRef:
-            name: {{ .secret }}
+            name: "{{ .secret }}"
           options:
             networkPath: {{ .vol }}
             mountOptions: "dir_mode={{ .dmode }},file_mode={{ .fmode }}{{ empty .ver | not | ternary (cat ",vers=" .ver)  "" | nospace }}"

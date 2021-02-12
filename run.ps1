@@ -21,15 +21,20 @@ Create a widget api service using values in config-values-api.yml
 
 Do a dry run and split the manifests up for comparing to ./templates
 
-Get Split-HelmDryRun from https://gist.githubusercontent.com/Seekatar/5c14ad85d9d649ca0da9bf8377367ac4/raw/a0c8b4796acd8b1df03fd9ecee6aa282025acf64/Split-HelmDryRun.ps1
+Get with this:
+Invoke-WebRequest -OutFile .\Split-HelmDryRun.ps1 https://gist.githubusercontent.com/Seekatar/5c14ad85d9d649ca0da9bf8377367ac4/raw/a0c8b4796acd8b1df03fd9ecee6aa282025acf64/Split-HelmDryRun.ps1
+. .\Split-HelmDryRun.ps1
 #>
 param(
     [Parameter(Mandatory)]
-    [ValidateSet('install','uninstall','dry-run','lint')]
+    [ValidateSet('install','uninstall','dry-run','lint','package')]
     [string[]] $Task,
     [string] $Name,
     [ValidateScript({Test-Path $_ -PathType Leaf})]
-    [string] $OverrideFile
+    [string] $OverrideFile,
+    [ValidatePattern('\d+\.\d+.\d+')]
+    [string] $Version,
+    [switch] $Wait
 )
 
 function exec([Parameter(Mandatory)] [string] $taskName,
@@ -50,23 +55,37 @@ foreach ($t in $Task) {
         'install' {
             if (!$OverrideFile -or !$Name) {
                 Write-Warning "OverrideFile and Name are required for $t"
+            } else {
+                $parms = @()
+                if ($Wait) {
+                    $parms += "--wait" # default wait is 5m0s
+                }
+                exec $t { helm upgrade --install --values $OverrideFile $Name . @parms} -workingdir $PSScriptRoot
             }
-            exec $t { helm upgrade --install --values $OverrideFile $Name . } -workingdir $PSScriptRoot
         }
         'uninstall' {
             if (!$Name) {
                 Write-Warning "Name is required for $t"
+            } else {
+                exec $t { helm uninstall $Name }
             }
-            exec $t { helm uninstall $Name }
         }
         'dry-run' {
             if (!$OverrideFile -or !$Name) {
                 Write-Warning "OverrideFile and Name are required for $t"
+            } else {
+                exec $t { helm upgrade --install --dry-run --values $OverrideFile $Name --set deployFlow=false . } -WorkingDirectory $PSScriptRoot
             }
-            exec $t { helm upgrade --install --dry-run --values $OverrideFile $Name --set deployFlow=false . } -WorkingDirectory $PSScriptRoot
         }
         'lint' {
             exec $t { helm lint . } -WorkingDirectory $PSScriptRoot
+        }
+        'package' {
+            if (!$Version) {
+                Write-Warning "Version is required for $t"
+            } else {
+                exec $t { helm package . --app-version $Version --version $Version } -WorkingDirectory $PSScriptRoot
+            }
         }
         Default {}
     }

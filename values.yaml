@@ -22,7 +22,7 @@ image:
   tag: ""
 
 # imagePullSecrets for the deployment
-imagePullSecrets: []
+imagePullSecrets: [ {"name":"regcred"}]
 
 serviceAccount:
   # serviceAccount.create specifies whether a service account should be created
@@ -83,7 +83,7 @@ resources:
     memory: 500Mi
 
 healthChecks:
-  port: 80
+  port: 8080
   liveness:
     url: /health/live
     initialDelaySeconds: 10
