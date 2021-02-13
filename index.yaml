@@ -1,1 +1,14 @@
-test
+apiVersion: v1
+entries:
+  cas-service:
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2021-02-13T10:18:33.5130427-05:00"
+    description: A Helm chart for Casualty microservice
+    digest: cef52e1d395b6ddd1f9ea2e1d1a282d33f1d421fde26c358ddb099b772dca381
+    name: cas-service
+    type: application
+    urls:
+    - https://seekatar.github.io/helm-micro-service/cas-service-0.0.1.tgz
+    version: 0.0.1
+generated: "2021-02-13T10:18:33.5120434-05:00"
