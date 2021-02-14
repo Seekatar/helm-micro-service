@@ -78,7 +78,7 @@ foreach ($t in $Task) {
             }
         }
         'lint' {
-            exec $t { helm lint . } -WorkingDirectory $PSScriptRoot
+            exec $t { helm lint . --values .\lint-values.yaml } -WorkingDirectory $PSScriptRoot
         }
         'package' {
             if (!$Version) {
