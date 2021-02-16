@@ -206,7 +206,7 @@ $outputFolder = "c:\temp\helm"
   ActiveMq__Host = "host.docker.internal"
   ActiveMq__Username = "service"
   ASPNETCORE_URLS = "http://+:8080"
-"@                      -secretProperties "ActiveMq__Password = ldtmxrgiyrbls" |
+"@                      -secretProperties "ActiveMq__Password = ...." |
    Out-File $valuesFile -Encoding ascii
 
 .\run.ps1 dry-run -OverrideFile $valuesFile -Name cas-widget-api | Split-HelmDryRun -Outputpath $OutputFolder
