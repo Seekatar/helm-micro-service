@@ -60,7 +60,7 @@ foreach ($t in $Task) {
                 if ($Wait) {
                     $parms += "--wait" # default wait is 5m0s
                 }
-                exec $t { helm upgrade --install --values $OverrideFile $Name . @parms} -workingdir $PSScriptRoot
+                exec $t { helm upgrade --install --values $OverrideFile $Name . @parms} -workingdir $PSScriptRoot/src
             }
         }
         'uninstall' {
@@ -74,17 +74,17 @@ foreach ($t in $Task) {
             if (!$OverrideFile -or !$Name) {
                 Write-Warning "OverrideFile and Name are required for $t"
             } else {
-                exec $t { helm upgrade --install --dry-run --values $OverrideFile $Name --set deployFlow=false . } -WorkingDirectory $PSScriptRoot
+                exec $t { helm upgrade --install --dry-run --values $OverrideFile $Name --set deployFlow=false . } -WorkingDirectory $PSScriptRoot/src
             }
         }
         'lint' {
-            exec $t { helm lint . --values .\lint-values.yaml } -WorkingDirectory $PSScriptRoot
+            exec $t { helm lint . --values .\lint-values.yaml } -WorkingDirectory $PSScriptRoot/src
         }
         'package' {
             if (!$Version) {
                 Write-Warning "Version is required for $t"
             } else {
-                exec $t { helm package . --app-version $Version --version $Version } -WorkingDirectory $PSScriptRoot
+                exec $t { helm package . --app-version $Version --version $Version } -WorkingDirectory $PSScriptRoot/src
             }
         }
         Default {}

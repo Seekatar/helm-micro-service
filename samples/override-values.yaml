@@ -1,0 +1,120 @@
+# sample values file for use with cas-service
+
+cas-service:
+  # Default values for cas-service.
+  # anything not commented out must be overriden
+
+  # serviceName is the requires name of the service, e.g. cas-widget-service
+  serviceName: ""
+
+  image:
+    # image.repository is the repo for pulling the image
+    # repository: rulesenginecontainerregistry.azurecr.io
+    # image.pullPolicy for K8s
+    # pullPolicy: IfNotPresent
+    # image.name is the required image name to deploy
+    name: ""
+    # image.tag is the required image tag to deploy
+    tag: ""
+
+  configMap: {}
+    # ActiveMq__Host: "host.docker.internal"
+    # ActiveMq__Username: "service"
+    # ASPNETCORE_URLS: "http://+:8080"
+
+  # secrets:
+  #   ActiveMq__Password: "...."
+
+  # deployFlow controls if the Flow object should be deployed (must be false for dry run)
+  # deployFlow: true
+
+  # number of replicas for the deployment
+  # replicaCount: 1
+
+  # imagePullSecrets for the deployment
+  # imagePullSecrets: [ {"name":"regcred"}]
+
+  # serviceAccount:
+  #   # serviceAccount.create specifies whether a service account should be created
+  #   create: false
+  #   # serviceAccount.annotations to add to the service account
+  #   annotations: {}
+  #   # serviceAccount.name is the name of the service account to use.
+  #   # If not set and create is true, a name is generated using the fullname template
+  #   name: ""
+
+  # podAnnotations to add to the pod
+  # podAnnotations: {}
+
+  # podSecurityContext: {}
+    # fsGroup: 2000
+
+  # securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+  # service:
+  #   # service.type
+  #   type: ClusterIP
+  #   # service.port is port to expose via the Service
+  #   port: 80
+  #   # service.targetPort is port inside the container
+  #   targetPort: 8080
+  #   # service.portName is descriptive name of the port
+  #   portName: HealthCheck
+
+  # ingress:
+  #   enabled: false
+  #   annotations: {}
+  #     # kubernetes.io/ingress.class: nginx
+  #     # kubernetes.io/tls-acme: "true"
+  #   hosts:
+  #     - host: chart-example.local
+  #       paths: []
+  #   tls: []
+  #   #  - secretName: chart-example-tls
+  #   #    hosts:
+  #   #      - chart-example.local
+
+  # resources:
+  #   # We usually recommend not to specify default resources and to leave this as a conscious
+  #   # choice for the user. This also increases chances charts run on environments with little
+  #   # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  #   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  #   # limits:
+  #   #   cpu: 100m
+  #   #   memory: 128Mi
+  #   requests:
+  #     cpu: 300m
+  #     memory: 500Mi
+
+  # healthChecks:
+  #   port: 8080
+  #   liveness:
+  #     url: /health/live
+  #     initialDelaySeconds: 10
+  #     timeoutSeconds: 15
+  #     periodSeconds: 15
+
+  #   ready:
+  #     url: /health/ready
+  #     initialDelaySeconds: 45
+  #     timeoutSeconds: 120
+  #     periodSeconds: 120
+
+  # autoscaling:
+  #   enabled: false
+  #   minReplicas: 1
+  #   maxReplicas: 100
+  #   targetCPUUtilizationPercentage: 80
+  #   # targetMemoryUtilizationPercentage: 80
+
+  # nodeSelector: {}
+
+  # tolerations: []
+
+  # affinity: {}

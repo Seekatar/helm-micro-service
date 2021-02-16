@@ -2,7 +2,7 @@
 # override with command line --set key:value or
 # --values <filename>
 
-# serviceName is the require name of the service, e.g. cas-widget-service
+# serviceName is the requires name of the service, e.g. cas-widget-service
 serviceName: ""
 
 # deployFlow controls if the Flow object should be deployed (must be false for dry run)
