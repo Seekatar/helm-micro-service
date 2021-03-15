@@ -31,5 +31,5 @@ steps:
     chartVersion: '$(Build.BuildNumber)'
 
 - bash: |
-    curl -u $(NUGET_USERNAME):$(NUGET_PASSWORD) $(NEXUS_HELM_URL) --upload-file $(Build.ArtifactStagingDirectory)/cas-micro-service-$(Build.BuildNumber).tgz -v
+    curl -u $(NUGET_USERNAME):$(NUGET_PASSWORD) $(NEXUS_HELM_URL) --upload-file $(Build.ArtifactStagingDirectory)/cas-service-$(Build.BuildNumber).tgz -v
   displayName: Post the package
