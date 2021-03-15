@@ -74,8 +74,8 @@ Add secretRef
 {{/*
 Add volumes
 */}}
-{{- define "cas-service.volumes" -}}
-  {{- if .Values.volumes }}
+{{- define "cas-service.volumesJson" -}}
+  {{- if .Values.volumesJson }}
       volumes:
     {{- range .Values.volumes }}
       {{- if .hostPath }}
@@ -100,8 +100,8 @@ Add volumes
 {{/*
 Add volumeMounts
 */}}
-{{- define "cas-service.volumeMounts" -}}
-  {{- if .Values.volumes }}
+{{- define "cas-service.volumeMountsJson" -}}
+  {{- if .Values.volumesJson }}
           volumeMounts:
     {{- range .Values.volumes }}
       {{- if .hostPath }}
