@@ -72,26 +72,30 @@ Add secretRef
 {{- end -}}
 
 {{/*
-Add volumes
+Add volumes, allow empty hostpath and vol
 */}}
 {{- define "cas-service.volumesJson" -}}
   {{- if .Values.volumesJson }}
       volumes:
-    {{- range .Values.volumes }}
+    {{- range .Values.volumesJson }}
+      {{- if hasKey . "hostPath" }}
       {{- if .hostPath }}
       - name: {{ coalesce .hostPath "???" | trim | replace "\\" "/" | replace "/" "-" | replace "." "-" | trimAll "-" | lower}}
         hostPath:
           path: {{ .hostPath }}
-      {{- else }}
-      - name: {{ coalesce (required "hostPath or vol required in volume" .vol)  "???" | trim | replace "\\" "/" | replace "/" "-" | replace "." "-" | trimAll "-" | lower}}
+      {{- end -}}
+      {{- else if hasKey . "vol" -}}
+      {{- if .vol }}
+      - name: {{ coalesce .vol.networkPath "???" | trim | replace "\\" "/" | replace "/" "-" | replace "." "-" | trimAll "-" | lower}}
         flexVolume:
           driver: "fstab/cifs"
           fsType: "cifs"
           secretRef:
-            name: "{{ .secret }}"
+            name: "{{ .vol.secret }}"
           options:
-            networkPath: {{ .vol }}
-            mountOptions: "dir_mode={{ .dmode }},file_mode={{ .fmode }}{{ empty .ver | not | ternary (cat ",vers=" .ver)  "" | nospace }}"
+            networkPath: {{ .vol.networkPath }}
+            mountOptions: "dir_mode={{ .vol.dirMode }},file_mode={{ .vol.fileMode }}{{ empty .vol.ver | not | ternary (cat ",vers=" .vol.smbVersion)  "" | nospace }}"
+      {{- end -}}
       {{- end -}}
     {{- end -}}
   {{- end -}}
@@ -103,13 +107,15 @@ Add volumeMounts
 {{- define "cas-service.volumeMountsJson" -}}
   {{- if .Values.volumesJson }}
           volumeMounts:
-    {{- range .Values.volumes }}
+    {{- range .Values.volumesJson }}
+      {{- if hasKey . "hostPath" }}
       {{- if .hostPath }}
           - name: {{ trim .hostPath | replace "\\" "/" | replace "/" "-" | replace "." "-" | trimAll "-" | lower}}
             mountPath: {{ .hostPath }}
-      {{- else }}
-          - name: {{ trim .vol | replace "\\" "/" | replace "/" "-" | replace "." "-" | trimAll "-" | lower}}
-            mountPath: {{ .path }}
+      {{- end -}}
+      {{- else if hasKey . "vol"}}
+          - name: {{ trim .vol.networkPath | replace "\\" "/" | replace "/" "-" | replace "." "-" | trimAll "-" | lower}}
+            mountPath: {{ .vol.mountPath }}
       {{- end -}}
     {{- end -}}
   {{- end -}}
