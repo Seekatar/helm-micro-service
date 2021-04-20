@@ -35,6 +35,7 @@ configMap:
   SubscriptionClientName: BatchProcessor
   TZ: America/Chicago
 
+# allow empty hostpath and networkpath
 volumesJson:
 - hostPath: /nas-reprice.reprice.nhr.com/scans
 - hostPath: /nas-reprice.reprice.nhr.com/scans/OpexArchive

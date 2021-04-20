@@ -84,7 +84,7 @@ Add volumes, allow empty hostpath and vol
         hostPath:
           path: {{ .hostPath }}
       {{- end -}}
-      {{- else if hasKey . "vol" -}}
+      {{- else if and (hasKey . "vol") .vol.networkPath }}
       {{- if .vol }}
       - name: {{ coalesce .vol.networkPath "???" | trim | replace "\\" "/" | replace "/" "-" | replace "." "-" | trimAll "-" | lower}}
         flexVolume:
@@ -113,7 +113,7 @@ Add volumeMounts
           - name: {{ trim .hostPath | replace "\\" "/" | replace "/" "-" | replace "." "-" | trimAll "-" | lower}}
             mountPath: {{ .hostPath }}
       {{- end -}}
-      {{- else if hasKey . "vol"}}
+      {{- else if and (hasKey . "vol") .vol.networkPath }}
           - name: {{ trim .vol.networkPath | replace "\\" "/" | replace "/" "-" | replace "." "-" | trimAll "-" | lower}}
             mountPath: {{ .vol.mountPath }}
       {{- end -}}
