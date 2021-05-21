@@ -45,10 +45,10 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Create the name of the service account to use
 */}}
 {{- define "cas-service.serviceAccountName" -}}
-  {{- if .Values.serviceAccount.create }}
-      {{- default (include "cas-service.fullname" .) .Values.serviceAccount.name }}
-  {{- else }}
-      {{- default "default" .Values.serviceAccount.name }}
+  {{- if .Values.serviceAccount.create -}}
+      serviceAccountName: {{ default (include "cas-service.fullname" .) .Values.serviceAccount.name }}
+  {{- else if .Values.serviceAccount.name -}}
+      serviceAccountName: {{ default "default" .Values.serviceAccount.name }}
   {{- end }}
 {{- end }}
 
