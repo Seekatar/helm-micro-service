@@ -48,7 +48,7 @@ Create the name of the service account to use
   {{- if .Values.serviceAccount.create -}}
       serviceAccountName: {{ default (include "cas-service.fullname" .) .Values.serviceAccount.name }}
   {{- else if .Values.serviceAccount.name -}}
-      serviceAccountName: {{ default "default" .Values.serviceAccount.name }}
+      serviceAccountName: {{ .Values.serviceAccount.name }}
   {{- end }}
 {{- end }}
 
