@@ -1,4 +1,4 @@
-{{- if .Values.ingressext.enabled -}}
+{{- if .Values.ingressInternet.enabled -}}
 {{- $fullName := include "cas-service.fullname" . -}}
 {{- $svcPort := .Values.service.port -}}
 {{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
@@ -8,17 +8,17 @@ apiVersion: extensions/v1beta1
 {{- end }}
 kind: Ingress
 metadata:
-  name: {{ .Values.ingressext.name }}
+  name: {{ .Values.ingressInternet.name }}
   labels:
     {{- include "cas-service.labels" . | nindent 4 }}
-  {{- with .Values.ingressext.annotations }}
+  {{- with .Values.ingressInternet.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  {{- if .Values.ingressext.tls }}
+  {{- if .Values.ingressInternet.tls }}
   tls:
-    {{- range .Values.ingressext.tls }}
+    {{- range .Values.ingressInternet.tls }}
     - hosts:
         {{- range .hosts }}
         - {{ . | quote }}
@@ -27,7 +27,7 @@ spec:
     {{- end }}
   {{- end }}
   rules:
-    {{- range .Values.ingressext.hosts }}
+    {{- range .Values.ingressInternet.hosts }}
     - host: {{ .host | quote }}
       http:
         paths:

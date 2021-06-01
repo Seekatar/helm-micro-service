@@ -1,4 +1,4 @@
-{{- if .Values.ingressapi.enabled -}}
+{{- if .Values.ingressInternal.enabled -}}
 {{- $fullName := include "cas-service.fullname" . -}}
 {{- $svcPort := .Values.service.port -}}
 {{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
@@ -8,17 +8,17 @@ apiVersion: extensions/v1beta1
 {{- end }}
 kind: Ingress
 metadata:
-  name: {{ .Values.ingressapi.name }}
+  name: {{ .Values.ingressInternal.name }}
   labels:
     {{- include "cas-service.labels" . | nindent 4 }}
-  {{- with .Values.ingressapi.annotations }}
+  {{- with .Values.ingressInternal.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  {{- if .Values.ingressapi.tls }}
+  {{- if .Values.ingressInternal.tls }}
   tls:
-    {{- range .Values.ingressapi.tls }}
+    {{- range .Values.ingressInternal.tls }}
     - hosts:
         {{- range .hosts }}
         - {{ . | quote }}
@@ -27,7 +27,7 @@ spec:
     {{- end }}
   {{- end }}
   rules:
-    {{- range .Values.ingressapi.hosts }}
+    {{- range .Values.ingressInternal.hosts }}
     - host: {{ .host | quote }}
       http:
         paths:
