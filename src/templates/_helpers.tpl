@@ -120,3 +120,30 @@ Add volumeMounts
     {{- end -}}
   {{- end -}}
 {{- end -}}
+
+{{/*
+Add host path volumes from comma-delimited string
+*/}}
+{{- define "cas-service.volumesHostPath" -}}
+  {{- if .Values.hostPaths.volumes }}
+      volumes:
+    {{- range $index, $v := splitList "," .Values.hostPaths.volumes }}
+      - name: {{ printf "volume-%d" (add $index 1) }}
+        hostPath:
+          path: {{ $v }}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+Add host path volumeMounts from comma-delimited string
+*/}}
+{{- define "cas-service.volumeMountsHostPath" -}}
+  {{- if .Values.hostPaths.mounts }}
+          volumeMounts:
+    {{- range $index, $v :=splitList "," .Values.hostPaths.mounts }}
+          - name: {{ printf "volume-%d" (add $index 1) }}
+            mountPath: {{ . }}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
