@@ -1,0 +1,1 @@
+Check the ingress and service configuration to get the port

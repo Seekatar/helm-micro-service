@@ -1,0 +1,85 @@
+# deployFlow for Flow in K8s, use false for local
+deployFlow: true
+
+# full name
+serviceName: $env:APPNAME
+
+image:
+  name: test.test.ui
+  tag: "$env:IMAGE_TAG"
+  repository: "test.azurecr.io"
+  pullPolicy: IfNotPresent
+
+# configMap has values to put into the environment
+configMap:
+  VUE_APP_ENV_FILE: .env
+  VUE_APP_PORT: $env:NODE_PORT
+  VUE_APP_OKTA_ISSUER: $env:OKTAGROUP__ISSUER
+  VUE_APP_OKTA_CLIENT_ID: $env:OKTAGROUP__CLIENT_ID
+  VUE_APP_OKTA_USE_PKCE: $env:VUE_APP_OKTA_USE_PKCE
+  VUE_APP_OKTA_TESTING_DISABLEHTTPSCHEC: $env:VUE_APP_OKTA_TESTING_DISABLEHTTPSCHEC
+  VUE_APP_CODEGEN: $env:VUE_APP_CODEGEN
+  VUE_APP_PATH: $env:VUE_APP_PATH
+  VUE_APP_API_PATH: $env:VUE_APP_API_PATH
+  VUE_APP_REDIRECT_PORT: $env:VUE_APP_REDIRECT_PORT
+  VUE_APP_URL: $env:VUE_APP_URL
+  VERSION: "$env:IMAGE_TAG"
+
+service:
+  # service.type
+  type: ClusterIP
+  # service.port is port to expose via the Service
+  port: 80
+  # service.targetPort is port inside the container
+  targetPort: 8008
+  # service.portName is descriptive name of the port
+  portName: HealthCheck
+
+healthChecks:
+  port: 8008
+  liveness:
+    url: /health/live
+    initialDelaySeconds: 10
+    timeoutSeconds: 15
+    periodSeconds: 15
+  ready:
+    url: /health/ready
+    initialDelaySeconds: 45
+    timeoutSeconds: 120
+    periodSeconds: 120
+
+ingressInternal:
+  name: test--ui-internal
+  enabled: $env:ENABLE_INGRESS_INTERNAL
+  annotations:
+    kubernetes.io/ingress.class: internal
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "360"
+    nginx.ingress.kubernetes.io/proxy-next-upstream-timeout: "360"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "360"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "360"
+    nginx.ingress.kubernetes.io/client-body-buffer-size: 128k
+    nginx.ingress.kubernetes.io/proxy-body-size: 10m
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 32k
+  hosts:
+  - host: "$env:INGRESS_HOST_INTERNAL"
+    paths:
+    - path: /fp-ui
+
+ingressInternet:
+  name: test--ui-internet
+  enabled: $env:ENABLE_INGRESS_EXTERNAL
+  annotations:
+    kubernetes.io/ingress.class: internet
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "360"
+    nginx.ingress.kubernetes.io/proxy-next-upstream-timeout: "360"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "360"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "360"
+    nginx.ingress.kubernetes.io/client-body-buffer-size: 128k
+    nginx.ingress.kubernetes.io/proxy-body-size: 10m
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 32k
+  hosts:
+  - host: "$env:INGRESS_HOST_INTERNET"
+    paths:
+    - path: /fp-ui

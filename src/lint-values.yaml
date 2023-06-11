@@ -1,0 +1,7 @@
+# all required values so lint is quieter
+
+serviceName: "lint"
+
+image:
+  name: "lint"
+  tag: "0.0.0"

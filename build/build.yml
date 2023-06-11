@@ -1,0 +1,35 @@
+# Build the Helm Chart.
+name: "1.0.$(Rev:r)"
+
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - group: NEXUS_AUTH
+  - name: NEXUS_HELM_URL
+    value: https://artifacts.test-batchprocessorreview.com/repository/helm-releases/
+
+steps:
+- pwsh: |
+   gci $(Agent.BuildDirectory) -r | select fullname | ft -a -wrap
+   gci -r env: | ft -a -wrap
+  displayName: Debug folders
+
+- task: HelmInstaller@0
+  inputs:
+    helmVersion: '2.14.1'
+    installKubectl: true
+
+- task: HelmDeploy@0
+  displayName: "Create the package"
+  inputs:
+    command: 'package'
+    chartPath: 'src'
+    chartVersion: '$(Build.BuildNumber)'
+
+- bash: |
+    curl -u $(NUGET_USERNAME):$(NUGET_PASSWORD) $(NEXUS_HELM_URL) --upload-file $(Build.ArtifactStagingDirectory)/test-service-$(Build.BuildNumber).tgz -v
+  displayName: Post the package

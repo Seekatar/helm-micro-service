@@ -1,0 +1,105 @@
+# Default values for test-service.
+# override with command line --set key:value or
+# --values <filename>
+
+# serviceName is the requires name of the service, e.g. test-widget-service
+serviceName: "test-batchprocessor"
+
+# reallyDeployFlow controls if the Flow object should be deployed (must be false for dry run)
+# this was deployFlow, but now no one should be using it any more, but you still can
+# if you _really_ want to
+reallyDeployFlow: false
+
+# number of replicas for the deployment
+replicaCount: 1
+
+image:
+  # image.repository is the repo for pulling the image
+  repository: test.azurecr.io
+  # image.pullPolicy for K8s
+  pullPolicy: IfNotPresent
+  # image.name is the required image name to deploy
+  name: "test-batchprocessor"
+  # image.tag is the required image tag to deploy
+  tag: $env:IMAGE_TAG
+
+configMap:
+  ASPNETCORE_ENVIRONMENT: Development
+  ASPNETCORE_URLS: http://0.0.0.0:8080
+  BatchArchiveDirectory: /scans/OpexArchive
+  BatchErrorDirectory: /scans/error
+  EventBusConnection: test-eventbus
+  EventBusRetryCount: "5"
+  EventBusUserName: $env:OPEX_SCANNER_EVENT_BUS_USERNAME
+  NAS_ENVIRONMENT_SUB_PATH: $env:NAS_ENVIRONMENT_SUB_PATH
+  OPEX_SCANNER_MOUNT_SECRET: $env:OPEX_SCANNER_MOUNT_SECRET
+  SCANS_IMAGES_PATH: $env:SCANS_IMAGES_PATH
+  SubscriptionClientName: BatchProcessor
+  TZ: America/Chicago
+
+# alternate method of specifying mounts
+hostPaths:
+  volumes: "/nas-reprice.reprice.nhr.com/scans,/nas-reprice.reprice.nhr.com/scans/OpexArchive"
+  mounts: "/nas-reprice.reprice.nhr.com/scans/OpexArchive,/nas-reprice.reprice.nhr.com/scans/OpexArchive"
+
+# imagePullSecrets for the deployment
+imagePullSecrets:
+- name: regcred
+
+service:
+  # service.type
+  type: ClusterIP
+  # service.port is port to expose via the Service
+  port: 8080
+  # service.targetPort is port inside the container
+  targetPort: 8080
+  # service.portName is descriptive name of the port
+  portName: HealthCheck
+
+resources:
+  # test recommended default
+  requests:
+    cpu: 300m
+    memory: 500Mi
+
+autoscaling:
+  enabled: false
+  # minreplicas: 1
+  # maxreplicas: 100
+  # targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+healthChecks:
+  port: 8080
+  liveness:
+    url: /health/live
+    initialDelaySeconds: 10
+    timeoutSeconds: 15
+    periodSeconds: 15
+
+  ready:
+    url: /health/ready
+    initialDelaySeconds: 45
+    timeoutSeconds: 120
+    periodSeconds: 120
+
+ingress:
+  enabled: false
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+nodeSelector:
+  node-role: worker-nas
+
+tolerations:
+- key: worker-nas
+  operator: Exists

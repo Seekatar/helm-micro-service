@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "cas-service.fullname" . }}
+  name: {{ include "test-service.fullname" . }}
   labels:
-    {{- include "cas-service.labels" . | nindent 4 }}
+    {{- include "test-service.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "cas-service.selectorLabels" . | nindent 6 }}
+      {{- include "test-service.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -18,46 +18,63 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "cas-service.selectorLabels" . | nindent 8 }}
+        {{- include "test-service.selectorLabels" . | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- if .Values.elasticLog }}
+        co.elastic.logs/json.keys_under_root: "true"
+        co.elastic.logs/json.add_error_key: "true"
+        co.elastic.logs/json.message_key: "log"
+        {{- end }}
     spec:
-      {{- include "cas-service.volumes" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.volumes }}
+      volumes:
+        {{ toYaml . | nindent 8 }}
+      {{- end }}
+      {{- include "test-service.volumesJson" . }}
+      {{- include "test-service.volumesHostPath" . }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "cas-service.serviceAccountName" . }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{ include "test-service.serviceAccountName" . }}
       containers:
-        - name: {{ .Chart.Name }}
+        - name: {{ include "test-service.fullname" . }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}/{{ required "A image.name is required!" .Values.image.name }}:{{ required "A image.tag is required!" .Values.image.tag }}"
+          image: "{{ .Values.image.repository }}{{ .Values.image.repository | not | ternary "" "/" }}{{ required "A image.name is required!" .Values.image.name }}:{{ required "A image.tag is required!" .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.volumeMounts }}
+          volumeMounts:
+            {{ toYaml . | nindent 12 }}
+          {{- end }}
+          {{- include "test-service.volumeMountsJson" . }}
+          {{- include "test-service.volumeMountsHostPath" . }}
           ports:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
               protocol: TCP
           envFrom:
             - configMapRef:
-                name: {{ include "cas-service.fullname" . }}
-                {{- include "cas-service.secret" . }}
-            - secretRef:
+                name: {{ include "test-service.fullname" . }}
+          {{- include "test-service.secret" . }}
           livenessProbe:
             httpGet:
               path: {{ .Values.healthChecks.liveness.url }}
-              port: http
+              port: {{ .Values.healthChecks.port }}
             initialDelaySeconds: {{ .Values.healthChecks.liveness.initialDelaySeconds }}
             timeoutSeconds: {{ .Values.healthChecks.liveness.timeoutSeconds }}
             periodSeconds: {{ .Values.healthChecks.liveness.periodSeconds}}
           readinessProbe:
             httpGet:
               path: {{ .Values.healthChecks.ready.url }}
-              port: http
+              port: {{ .Values.healthChecks.port }}
             initialDelaySeconds: {{ .Values.healthChecks.ready.initialDelaySeconds }}
             timeoutSeconds: {{ .Values.healthChecks.ready.timeoutSeconds }}
             periodSeconds: {{ .Values.healthChecks.ready.periodSeconds}}
-          {{- include "cas-service.volumeMounts" . }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
